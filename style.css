@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RapidCR — Crisis Response Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=Anton&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--ink:#060A14;--ink2:#0B1020;--ink3:#111827;--panel:#0E1526;--card:#121B30;--edge:rgba(255,255,255,0.07);--edge2:rgba(255,255,255,0.13);--red:#E03535;--red-d:#B52828;--red-g:rgba(224,53,53,0.18);--amber:#F59E0B;--green:#10B981;--blue:#3B82F6;--purple:#8B5CF6;--txt:#DDE4F2;--txt2:#8896B3;--txt3:#4A5568;--mono:'Space Mono',monospace;--head:'Anton',sans-serif;--body:'Outfit',sans-serif;--r:5px;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--body);background:var(--ink);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,0.016) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.016) 1px,transparent 1px);background-size:56px 56px;}
+.view{display:none;position:relative;z-index:1;}
+.view.on{display:flex;flex-direction:column;min-height:100vh;}
+#vLogin{align-items:center;justify-content:center;padding:32px 20px;background:radial-gradient(ellipse 55% 65% at 10% 55%,rgba(224,53,53,0.1) 0%,transparent 70%),radial-gradient(ellipse 45% 45% at 90% 15%,rgba(59,130,246,0.07) 0%,transparent 65%),var(--ink);}
+.login-shell{width:100%;max-width:1020px;display:grid;grid-template-columns:1fr 440px;background:var(--ink2);border:1px solid var(--edge2);border-radius:10px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.7);animation:riseUp .55s cubic-bezier(.16,1,.3,1) both;}
+@keyframes riseUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.l-hero{padding:56px 52px;background:linear-gradient(150deg,#060E1E 0%,#0A1628 100%);border-right:1px solid var(--edge);display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;}
+.l-hero::before{content:'';position:absolute;bottom:-90px;right:-90px;width:280px;height:280px;border-radius:50%;border:55px solid rgba(224,53,53,0.05);}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:52px;}
+.brand-icon{width:48px;height:48px;background:var(--red);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px rgba(224,53,53,0.4);}
+.brand-name{font-family:var(--head);font-size:26px;letter-spacing:2px;color:var(--txt);}
+.brand-name span{color:var(--red);}
+.hero-title{font-family:var(--head);font-size:54px;line-height:1;letter-spacing:1px;margin-bottom:18px;}
+.hero-title .acc{color:var(--red);display:block;}
+.hero-sub{font-size:14px;color:var(--txt2);line-height:1.75;max-width:310px;margin-bottom:52px;}
+.sys-strip{display:flex;flex-direction:column;gap:11px;}
+.sys-line{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--txt3);letter-spacing:.3px;}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 7px currentColor;}
+.sg{background:var(--green);color:var(--green);animation:pulse 2.4s ease-in-out infinite;}
+.sa{background:var(--amber);color:var(--amber);animation:pulse 1.8s ease-in-out infinite;}
+.sr{background:var(--red);color:var(--red);animation:pulse 1.1s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.l-form{padding:52px 44px;display:flex;flex-direction:column;justify-content:center;}
+.form-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--red);text-transform:uppercase;border-left:2px solid var(--red);padding-left:10px;margin-bottom:10px;}
+.form-title{font-family:var(--head);font-size:30px;letter-spacing:1px;margin-bottom:6px;}
+.form-sub{font-size:13.5px;color:var(--txt2);margin-bottom:28px;line-height:1.5;}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:26px;}
+.role-card{padding:12px 10px;border:1px solid var(--edge2);background:rgba(255,255,255,0.03);border-radius:var(--r);cursor:pointer;text-align:center;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.role-card:hover{background:rgba(255,255,255,0.06);}
+.role-card.sel{border-color:var(--red);background:rgba(224,53,53,0.08);}
+.role-card.sel .rc-name{color:var(--red);}
+.rc-icon{font-size:22px;}
+.rc-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txt2);transition:color .18s;}
+.rc-desc{font-size:10px;color:var(--txt3);line-height:1.3;}
+.coord-notice{display:none;align-items:center;gap:8px;background:rgba(224,53,53,0.07);border:1px solid rgba(224,53,53,0.2);padding:10px 14px;border-radius:var(--r);margin-bottom:16px;font-size:11.5px;color:var(--txt2);line-height:1.5;}
+.coord-notice.show{display:flex;}
+.coord-notice strong{color:var(--red);}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--txt2);margin-bottom:8px;}
+.field-wrap{position:relative;}
+.field input{width:100%;padding:13px 44px 13px 16px;background:rgba(255,255,255,0.04);border:1px solid var(--edge2);color:var(--txt);font-family:var(--body);font-size:14px;border-radius:var(--r);outline:none;transition:border-color .2s,background .2s;}
+.field input::placeholder{color:var(--txt3);}
+.field input:focus{border-color:rgba(224,53,53,.55);background:rgba(224,53,53,.03);}
+.ficon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;}
+.tgl{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--txt3);cursor:pointer;font-family:var(--mono);font-size:10px;transition:color .2s;}
+.tgl:hover{color:var(--txt);}
+.err-box{display:none;background:rgba(224,53,53,.08);border:1px solid rgba(224,53,53,.3);border-left:3px solid var(--red);color:var(--red);font-size:12px;padding:11px 14px;border-radius:var(--r);margin-bottom:16px;line-height:1.55;}
+.err-box.on{display:block;animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-7px);}40%{transform:translateX(7px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.btn-login{width:100%;padding:15px 20px;background:var(--red);color:#fff;border:none;font-family:var(--body);font-size:15px;font-weight:800;letter-spacing:.4px;border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.btn-login:hover{background:#EC3F3F;transform:translateY(-1px);box-shadow:0 10px 30px rgba(224,53,53,.38);}
+.login-note{margin-top:18px;padding:13px 16px;background:rgba(255,255,255,.025);border:1px solid var(--edge);border-radius:var(--r);font-size:11.5px;color:var(--txt3);line-height:1.65;}
+.login-note strong{color:var(--txt2);}
+/* APP */
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative;z-index:1;}
+.topbar{height:58px;flex-shrink:0;background:rgba(6,10,20,.97);border-bottom:1px solid var(--edge2);display:flex;align-items:center;padding:0 24px;gap:16px;backdrop-filter:blur(14px);z-index:200;}
+.tb-brand{font-family:var(--head);font-size:21px;letter-spacing:2px;margin-right:4px;}
+.tb-brand span{color:var(--red);}
+.tb-div{width:1px;height:26px;background:var(--edge2);}
+.live-tag{display:flex;align-items:center;gap:7px;background:rgba(224,53,53,.1);border:1px solid rgba(224,53,53,.22);padding:5px 12px;border-radius:20px;font-family:var(--mono);font-size:10px;color:var(--red);}
+.live-tag .d{width:5px;height:5px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;}
+.tb-clk{font-family:var(--mono);font-size:11px;color:var(--txt3);}
+.nav-bar{display:flex;gap:2px;}
+.nb{padding:7px 16px;background:transparent;border:none;color:var(--txt2);font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;border-radius:6px;transition:all .18s;display:flex;align-items:center;gap:7px;}
+.nb:hover{background:rgba(255,255,255,.06);color:var(--txt);}
+.nb.on{background:rgba(224,53,53,.12);color:var(--txt);border:1px solid rgba(224,53,53,.18);}
+.nb-badge{background:var(--red);color:#fff;font-size:9px;font-weight:800;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:14px;}
+.user-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--edge);padding:5px 14px 5px 5px;border-radius:22px;}
+.u-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;}
+.u-name{font-size:12px;font-weight:700;line-height:1.1;}
+.u-role{font-family:var(--mono);font-size:9px;margin-top:2px;}
+.btn-out{padding:7px 14px;background:transparent;border:1px solid var(--edge2);color:var(--txt2);font-family:var(--mono);font-size:10px;letter-spacing:.5px;cursor:pointer;border-radius:var(--r);transition:all .18s;text-transform:uppercase;}
+.btn-out:hover{border-color:var(--red);color:var(--red);}
+.content{flex:1;overflow-y:auto;padding:26px;}
+.panel{display:none;}
+.panel.on{display:block;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.ph{margin-bottom:22px;}
+.ph h2{font-family:var(--head);font-size:28px;letter-spacing:.5px;margin-bottom:4px;}
+.ph p{font-size:13px;color:var(--txt2);}
+.card{background:var(--card);border:1px solid var(--edge);border-radius:6px;overflow:hidden;}
+.card-hdr{padding:15px 20px;border-bottom:1px solid var(--edge);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--txt2);display:flex;align-items:center;gap:8px;}
+.card-body{padding:18px 20px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat{background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:20px 22px;position:relative;overflow:hidden;}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.st-r::after{background:var(--red);}
+.st-a::after{background:var(--amber);}
+.st-b::after{background:var(--blue);}
+.st-g::after{background:var(--green);}
+.stat-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:10px;}
+.stat-val{font-family:var(--head);font-size:46px;line-height:1;margin-bottom:5px;}
+.cv-r{color:var(--red);}
+.cv-a{color:var(--amber);}
+.cv-b{color:var(--blue);}
+.cv-g{color:var(--green);}
+.stat-note{font-size:11.5px;color:var(--txt3);}
+.g2{display:grid;grid-template-columns:3fr 2fr;gap:18px;margin-bottom:22px;}
+.act-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.abtn{padding:10px 20px;border-radius:var(--r);cursor:pointer;font-family:var(--body);font-size:13px;font-weight:700;letter-spacing:.3px;transition:all .18s;border:1px solid;display:flex;align-items:center;gap:8px;}
+.ab-r{background:rgba(224,53,53,.12);border-color:rgba(224,53,53,.32);color:var(--red);}
+.ab-a{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.28);color:var(--amber);}
+.ab-b{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.28);color:var(--blue);}
+.ab-g{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.22);color:var(--green);}
+.ab-w{background:rgba(255,255,255,.05);border-color:var(--edge2);color:var(--txt);}
+.abtn:hover{filter:brightness(1.22);transform:translateY(-1px);}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl thead tr{border-bottom:1px solid var(--edge2);}
+.tbl th{padding:10px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);text-align:left;}
+.tbl tbody tr{border-bottom:1px solid var(--edge);transition:background .14s;cursor:pointer;}
+.tbl tbody tr:hover{background:rgba(255,255,255,.025);}
+.tbl td{padding:12px 14px;font-size:13px;}
+.tbl td:first-child{font-family:var(--mono);font-size:11px;color:var(--txt3);}
+.sev{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;font-family:var(--mono);padding:3px 9px;border-radius:3px;}
+.sev::before{content:'';width:5px;height:5px;border-radius:50%;}
+.sc{background:rgba(224,53,53,.12);color:var(--red);border:1px solid rgba(224,53,53,.28);}
+.sc::before{background:var(--red);box-shadow:0 0 4px var(--red);}
+.sh{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.28);}
+.sh::before{background:var(--amber);}
+.sm{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.28);}
+.sm::before{background:var(--blue);}
+.sl{background:rgba(16,185,129,.08);color:var(--green);border:1px solid rgba(16,185,129,.18);}
+.sl::before{background:var(--green);}
+.sta{font-size:10px;font-weight:700;font-family:var(--mono);padding:3px 9px;border-radius:3px;}
+.sa-active{background:rgba(224,53,53,.12);color:var(--red);}
+.sa-cont{background:rgba(245,158,11,.1);color:var(--amber);}
+.sa-res{background:rgba(16,185,129,.08);color:var(--green);}
+.feed{display:flex;flex-direction:column;}
+.fi{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--edge);}
+.fi:last-child{border-bottom:none;}
+.fi-ic{font-size:15px;flex-shrink:0;padding-top:1px;}
+.fi-txt{font-size:12.5px;color:var(--txt);line-height:1.5;margin-bottom:3px;}
+.fi-meta{font-family:var(--mono);font-size:10px;color:var(--txt3);}
+.rep-grid{display:grid;grid-template-columns:1fr 310px;gap:20px;}
+.fcard{background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:26px;}
+.fcard h3{font-family:var(--head);font-size:22px;letter-spacing:.5px;margin-bottom:5px;}
+.fcard .sub{font-size:13px;color:var(--txt2);margin-bottom:26px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg{margin-bottom:16px;}
+.fg label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt2);margin-bottom:7px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid var(--edge2);color:var(--txt);font-family:var(--body);font-size:13.5px;border-radius:var(--r);outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:rgba(224,53,53,.5);}
+.fg select option{background:#121B30;}
+.fg textarea{resize:vertical;min-height:88px;}
+.sev-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.sopt{padding:9px 4px;border:1px solid var(--edge2);background:transparent;font-family:var(--mono);font-size:10px;text-transform:uppercase;cursor:pointer;transition:all .18s;border-radius:var(--r);text-align:center;color:var(--txt3);}
+.sopt[data-v="CRITICAL"].ac{border-color:var(--red);color:var(--red);background:rgba(224,53,53,.08);}
+.sopt[data-v="HIGH"].ac{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.08);}
+.sopt[data-v="MEDIUM"].ac{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,.08);}
+.sopt[data-v="LOW"].ac{border-color:var(--green);color:var(--green);background:rgba(16,185,129,.08);}
+.sub-btn{width:100%;padding:14px;background:var(--red);color:#fff;border:none;font-family:var(--body);font-size:14px;font-weight:800;border-radius:var(--r);cursor:pointer;transition:all .2s;margin-top:6px;}
+.sub-btn:hover{background:#EC3F3F;box-shadow:0 8px 28px rgba(224,53,53,.35);}
+.sc2{background:var(--card);border:1px solid var(--edge);border-radius:6px;overflow:hidden;margin-bottom:14px;}
+.sc2-hdr{padding:12px 16px;border-bottom:1px solid var(--edge);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt2);}
+.sc2-body{padding:6px 0;}
+.urow{display:flex;align-items:center;gap:11px;padding:9px 16px;}
+.uav{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.ua-s{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.22);}
+.ua-m{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.22);}
+.ua-f{background:rgba(224,53,53,.12);border:1px solid rgba(224,53,53,.22);}
+.u-inf{flex:1;}
+.u-nm{font-size:12.5px;font-weight:600;}
+.u-dt{font-size:11px;color:var(--txt3);}
+.u-st{font-family:var(--mono);font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;}
+.us-av{background:rgba(16,185,129,.1);color:var(--green);}
+.us-by{background:rgba(245,158,11,.1);color:var(--amber);}
+.em-b{display:block;width:calc(100% - 32px);margin:5px 16px;padding:9px 13px;background:rgba(255,255,255,.03);border:1px solid var(--edge);border-radius:var(--r);color:var(--txt2);font-family:var(--mono);font-size:11px;cursor:pointer;text-align:left;transition:all .18s;}
+.em-b:hover{background:rgba(224,53,53,.08);border-color:rgba(224,53,53,.28);color:var(--red);}
+.comm-l{display:grid;grid-template-columns:255px 1fr;gap:14px;height:calc(100vh - 148px);}
+.ch-list{background:var(--card);border:1px solid var(--edge);border-radius:6px;overflow-y:auto;}
+.ch-s{padding:12px;border-bottom:1px solid var(--edge);}
+.ch-s input{width:100%;padding:8px 13px;background:rgba(255,255,255,.04);border:1px solid var(--edge);color:var(--txt);font-size:12.5px;border-radius:var(--r);outline:none;}
+.ch-grp{padding:11px 15px 3px;font-family:var(--mono);font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;}
+.chi{display:flex;align-items:center;gap:10px;padding:9px 15px;cursor:pointer;transition:background .14s;border-left:2px solid transparent;}
+.chi:hover{background:rgba(255,255,255,.04);}
+.chi.on{background:rgba(224,53,53,.08);border-left-color:var(--red);}
+.chi-nm{font-size:13px;flex:1;}
+.chi-u{width:17px;height:17px;background:var(--red);border-radius:50%;font-size:9.5px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.chat-p{background:var(--card);border:1px solid var(--edge);border-radius:6px;display:flex;flex-direction:column;overflow:hidden;}
+.chat-hdr{padding:14px 20px;border-bottom:1px solid var(--edge2);display:flex;align-items:center;gap:11px;}
+.chat-pulse{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red);animation:pulse 1s infinite;}
+.chat-nm{font-weight:700;font-size:14px;}
+.chat-mt{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--txt3);}
+.btn-bcast{padding:6px 13px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);color:var(--amber);font-family:var(--mono);font-size:10px;text-transform:uppercase;cursor:pointer;border-radius:var(--r);transition:all .18s;}
+.btn-bcast:hover{background:rgba(245,158,11,.16);}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
+.msg{display:flex;gap:11px;}
+.m-av{width:31px;height:31px;border-radius:50%;background:var(--ink3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.m-bd{flex:1;}
+.m-meta{display:flex;align-items:baseline;gap:9px;margin-bottom:4px;}
+.m-nm{font-size:12.5px;font-weight:700;}
+.nm-sys{color:var(--red);}
+.nm-st{color:var(--blue);}
+.m-ts{font-family:var(--mono);font-size:10px;color:var(--txt3);}
+.m-txt{font-size:13px;line-height:1.55;color:#BCC8E0;}
+.m-alrt{background:rgba(224,53,53,.07);border-left:3px solid var(--red);padding:11px 15px;border-radius:4px;font-size:13px;line-height:1.55;}
+.chat-inp-a{padding:14px 20px;border-top:1px solid var(--edge2);display:flex;gap:9px;}
+.chat-inp{flex:1;padding:10px 15px;background:rgba(255,255,255,.04);border:1px solid var(--edge2);color:var(--txt);font-family:var(--body);font-size:13px;border-radius:var(--r);outline:none;transition:border-color .2s;}
+.chat-inp:focus{border-color:rgba(224,53,53,.45);}
+.send-b{padding:10px 20px;background:var(--red);border:none;color:#fff;font-family:var(--body);font-size:13px;font-weight:800;border-radius:var(--r);cursor:pointer;transition:background .18s;}
+.send-b:hover{background:#EC3F3F;}
+.zone-c{background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:22px;margin-bottom:22px;}
+.zone-ttl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt2);margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.fl-lbl{font-family:var(--mono);font-size:10px;color:var(--txt3);margin-bottom:5px;margin-top:10px;}
+.fl-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;}
+.room{aspect-ratio:1.5;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;cursor:pointer;transition:all .2s;border:1px solid;font-weight:700;}
+.r-ok{background:rgba(16,185,129,.05);border-color:rgba(16,185,129,.12);color:rgba(16,185,129,.4);}
+.r-al{background:rgba(224,53,53,.14);border-color:rgba(224,53,53,.38);color:var(--red);animation:rp 1.4s infinite;}
+.r-wn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.26);color:var(--amber);}
+.r-ev{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.26);color:var(--blue);}
+@keyframes rp{0%,100%{background:rgba(224,53,53,.14);}50%{background:rgba(224,53,53,.26);}}
+.map-leg{display:flex;gap:18px;margin-top:13px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--txt3);}
+.ls{width:10px;height:10px;border-radius:2px;border:1px solid;}
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+.kb{background:var(--card);border:1px solid var(--edge);border-radius:6px;overflow:hidden;}
+.kb-hdr{padding:12px 16px;border-bottom:1px solid var(--edge);display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;}
+.kh-r{background:rgba(224,53,53,.07);border-left:3px solid var(--red);color:var(--red);}
+.kh-a{background:rgba(245,158,11,.05);border-left:3px solid var(--amber);color:var(--amber);}
+.kh-g{background:rgba(16,185,129,.05);border-left:3px solid var(--green);color:var(--green);}
+.kb-cnt{font-family:var(--head);font-size:22px;}
+.kb-it{padding:12px 16px;border-bottom:1px solid var(--edge);}
+.kb-it:last-child{border-bottom:none;}
+.kb-t{font-size:12.5px;font-weight:600;margin-bottom:3px;}
+.kb-m{font-family:var(--mono);font-size:10px;color:var(--txt3);}
+.rec-tb{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.rec-s{flex:1;padding:10px 16px;background:var(--card);border:1px solid var(--edge2);color:var(--txt);font-family:var(--body);font-size:13px;border-radius:var(--r);outline:none;}
+.rec-s::placeholder{color:var(--txt3);}
+.rec-s:focus{border-color:rgba(224,53,53,.45);}
+.btn-xl{padding:10px 20px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.28);color:var(--green);font-family:var(--body);font-size:13px;font-weight:700;border-radius:var(--r);cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:8px;}
+.btn-xl:hover{background:rgba(16,185,129,.18);transform:translateY(-1px);}
+.rec-wrap{background:var(--card);border:1px solid var(--edge);border-radius:6px;overflow:hidden;}
+.rec-pg{padding:13px 18px;border-top:1px solid var(--edge);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--txt3);}
+.pg-btns{display:flex;gap:5px;}
+.pbn{padding:4px 11px;background:transparent;border:1px solid var(--edge2);color:var(--txt2);font-size:11.5px;cursor:pointer;border-radius:3px;transition:all .14s;}
+.pbn:hover,.pbn.cur{background:rgba(224,53,53,.1);border-color:rgba(224,53,53,.28);color:var(--red);}
+/* USER SHELL */
+.gu-shell{display:flex;flex-direction:column;min-height:100vh;background:var(--ink);}
+.gu-top{height:56px;background:rgba(6,10,20,.97);border-bottom:1px solid var(--edge2);display:flex;align-items:center;padding:0 20px;gap:14px;position:sticky;top:0;z-index:100;flex-shrink:0;}
+.gu-top .tb-brand{font-size:18px;}
+.gu-top-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.gu-role-badge{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:3px;font-weight:700;letter-spacing:.5px;}
+.grb-guest{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:var(--blue);}
+.grb-staff{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:var(--green);}
+.grb-responder{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);color:var(--purple);}
+.gu-nav{display:flex;border-bottom:1px solid var(--edge2);background:var(--ink2);overflow-x:auto;flex-shrink:0;}
+.gu-nb{padding:12px 20px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--txt2);font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .18s;}
+.gu-nb.on{color:var(--txt);border-bottom-color:var(--red);}
+.gu-nb:hover{color:var(--txt);}
+.gu-content{flex:1;padding:20px;max-width:700px;margin:0 auto;width:100%;}
+.gu-panel{display:none;}
+.gu-panel.on{display:block;animation:fadeUp .3s ease;}
+/* SOS */
+.sos-section{background:var(--card);border:1px solid rgba(224,53,53,.25);border-radius:10px;padding:28px;margin-bottom:20px;text-align:center;box-shadow:0 0 40px rgba(224,53,53,.06);}
+.sos-title{font-family:var(--head);font-size:20px;letter-spacing:1px;margin-bottom:6px;}
+.sos-sub{font-size:13px;color:var(--txt2);margin-bottom:24px;}
+.sos-btn{width:160px;height:160px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#F04040,var(--red-d));border:4px solid rgba(224,53,53,.4);color:#fff;font-family:var(--head);font-size:28px;letter-spacing:1px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 0 0 12px rgba(224,53,53,.1),0 0 0 24px rgba(224,53,53,.05),0 16px 48px rgba(224,53,53,.4);margin:0 auto 24px;animation:sos-glow 2.5s ease-in-out infinite;}
+@keyframes sos-glow{0%,100%{box-shadow:0 0 0 12px rgba(224,53,53,.1),0 0 0 24px rgba(224,53,53,.05),0 16px 48px rgba(224,53,53,.4);}50%{box-shadow:0 0 0 16px rgba(224,53,53,.15),0 0 0 32px rgba(224,53,53,.07),0 16px 60px rgba(224,53,53,.55);}}
+.sos-btn:hover{transform:scale(1.05);}
+.sos-btn:active{transform:scale(0.97);}
+.sos-icon{font-size:36px;line-height:1;}
+.sos-label{font-size:12px;letter-spacing:2px;opacity:.85;}
+.em-contacts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.ec-btn{padding:16px 14px;border-radius:6px;cursor:pointer;text-align:center;transition:all .18s;border:1px solid;display:flex;flex-direction:column;align-items:center;gap:8px;}
+.ec-icon{font-size:28px;}
+.ec-name{font-size:12px;font-weight:700;letter-spacing:.4px;}
+.ec-num{font-family:var(--mono);font-size:13px;font-weight:700;}
+.ec-btn:hover{transform:translateY(-2px);filter:brightness(1.18);}
+.ec-fire{background:rgba(224,53,53,.1);border-color:rgba(224,53,53,.3);color:var(--red);}
+.ec-amb{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.22);color:var(--green);}
+.ec-pol{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.22);color:var(--blue);}
+.ec-hot{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.22);color:var(--amber);}
+.gu-status-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.gsb-item{flex:1;min-width:140px;background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.gsb-icon{font-size:22px;}
+.gsb-txt{font-size:12px;color:var(--txt2);line-height:1.4;}
+.gsb-val{font-weight:700;color:var(--txt);}
+.resp-board{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.rb-card{background:var(--card);border:1px solid var(--edge);border-radius:6px;padding:16px;}
+.rb-card h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt2);margin-bottom:12px;}
+.rb-inc{padding:10px 0;border-bottom:1px solid var(--edge);}
+.rb-inc:last-child{border-bottom:none;}
+.rb-t{font-size:13px;font-weight:600;margin-bottom:4px;}
+.rb-m{font-family:var(--mono);font-size:10px;color:var(--txt3);}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:999;align-items:center;justify-content:center;}
+.overlay.on{display:flex;}
+.modal{background:var(--ink2);border:1px solid var(--edge2);border-radius:9px;padding:32px;max-width:450px;width:90%;box-shadow:0 40px 100px rgba(0,0,0,.6);animation:riseUp .3s cubic-bezier(.16,1,.3,1);}
+.m-icon{font-size:32px;margin-bottom:12px;}
+.m-ttl{font-family:var(--head);font-size:26px;letter-spacing:.5px;margin-bottom:9px;}
+.m-body{font-size:13.5px;color:var(--txt2);line-height:1.65;margin-bottom:24px;}
+.m-acts{display:flex;gap:11px;}
+.m-ok{flex:1;padding:12px;background:var(--red);border:none;color:#fff;font-weight:800;font-size:14px;border-radius:var(--r);cursor:pointer;font-family:var(--body);}
+.m-cn{flex:1;padding:12px;background:transparent;border:1px solid var(--edge2);color:var(--txt2);font-size:14px;border-radius:var(--r);cursor:pointer;font-family:var(--body);}
+/* TOAST */
+.toast-tray{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:9px;}
+.toast{background:var(--ink2);border:1px solid var(--edge2);padding:13px 17px;border-radius:6px;font-size:13px;display:flex;align-items:center;gap:10px;min-width:285px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:slideIn .3s ease;line-height:1.45;}
+.t-ok{border-left:3px solid var(--green);}
+.t-er{border-left:3px solid var(--red);}
+.t-if{border-left:3px solid var(--blue);}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px;}
+@media(max-width:860px){.login-shell{grid-template-columns:1fr;}.l-hero{display:none;}.stats{grid-template-columns:repeat(2,1fr);}.g2,.rep-grid,.comm-l{grid-template-columns:1fr;}.kanban{grid-template-columns:1fr;}.nav-bar{display:none;}.resp-board{grid-template-columns:1fr;}.em-contacts{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="vLogin" class="view on">
+  <div class="login-shell">
+    <div class="l-hero">
+      <div>
+        <div class="brand"><div class="brand-icon">⚡</div><div class="brand-name">RAPID<span>CR</span></div></div>
+        <div class="hero-title">CRISIS<span class="acc">RESPONSE</span>PLATFORM</div>
+        <p class="hero-sub">Accelerated Emergency Response and Crisis Coordination for Hospitality Venues — connecting guests, staff, and emergency services instantly.</p>
+      </div>
+      <div class="sys-strip">
+        <div class="sys-line"><div class="sdot sg"></div>SYSTEM ONLINE · ALL NODES CONNECTED</div>
+        <div class="sys-line"><div class="sdot sr"></div>2 ACTIVE INCIDENTS BEING MONITORED</div>
+        <div class="sys-line"><div class="sdot sa"></div>14 RESPONDERS ON STANDBY</div>
+        <div class="sys-line"><div class="sdot sg"></div>AES-256 ENCRYPTED · SECURE CHANNEL</div>
+      </div>
+    </div>
+    <div class="l-form">
+      <div class="form-eyebrow">🔐 Secure Access Portal</div>
+      <div class="form-title">Sign In</div>
+      <p class="form-sub">Select your role, then enter your credentials to access the system.</p>
+      <div class="role-grid">
+        <div class="role-card sel" onclick="selRole(this,'guest')" data-role="guest"><div class="rc-icon">🧳</div><div class="rc-name">Guest</div><div class="rc-desc">Hotel guest access</div></div>
+        <div class="role-card" onclick="selRole(this,'staff')" data-role="staff"><div class="rc-icon">👔</div><div class="rc-name">Staff</div><div class="rc-desc">Hotel staff member</div></div>
+        <div class="role-card" onclick="selRole(this,'coordinator')" data-role="coordinator"><div class="rc-icon">🎖️</div><div class="rc-name">Coordinator</div><div class="rc-desc">Crisis command only</div></div>
+        <div class="role-card" onclick="selRole(this,'responder')" data-role="responder"><div class="rc-icon">🚒</div><div class="rc-name">Responder</div><div class="rc-desc">Emergency unit access</div></div>
+      </div>
+      <div class="coord-notice" id="coordNotice"><span>🔒</span><span><strong>Restricted:</strong> Coordinator access requires pre-authorised credentials only. All failed attempts are logged.</span></div>
+      <div class="field"><label>Full Name / Staff ID</label><div class="field-wrap"><input type="text" id="inpName" placeholder="Your name or staff ID" /><span class="ficon">👤</span></div></div>
+      <div class="field"><label>Email Address</label><div class="field-wrap"><input type="email" id="inpEmail" placeholder="you@example.com" /><span class="ficon">✉️</span></div></div>
+      <div class="field"><label>Password / Access Code</label><div class="field-wrap"><input type="password" id="inpPass" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()" /><button class="tgl" onclick="tglPwd()" id="tglBtn" type="button">SHOW</button></div></div>
+      <div class="err-box" id="errBox">⛔ <strong>Access Denied.</strong> Invalid coordinator credentials. This portal is restricted to the designated Crisis Coordinator only. All failed attempts are recorded and audited.</div>
+      <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In →</button>
+      <div class="login-note"><strong>Note:</strong> Guests, Staff &amp; Responders may sign in with any valid credentials. The Coordinator role requires pre-authorised access only.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COORDINATOR APP -->
+<div id="vCoord" class="view">
+  <div class="app">
+    <nav class="topbar">
+      <div class="tb-brand">RAPID<span>CR</span></div>
+      <div class="tb-div"></div>
+      <div class="live-tag"><div class="d"></div>2 ACTIVE INCIDENTS</div>
+      <div class="tb-clk">⏱ <span id="clkC"></span></div>
+      <div class="nav-bar">
+        <button class="nb on" onclick="goPnl('dash',this)">📊 Dashboard<span class="nb-badge">2</span></button>
+        <button class="nb" onclick="goPnl('report',this)">🚨 Report</button>
+        <button class="nb" onclick="goPnl('comms',this)">💬 Comms<span class="nb-badge">7</span></button>
+        <button class="nb" onclick="goPnl('status',this)">🗺 Status</button>
+        <button class="nb" onclick="goPnl('records',this)">📋 Records</button>
+      </div>
+      <div class="tb-right">
+        <div class="user-chip"><div class="u-av" style="background:var(--red);">C</div><div><div class="u-name" id="cName">Coordinator</div><div class="u-role" style="color:var(--red);">CRISIS COORDINATOR</div></div></div>
+        <button class="btn-out" onclick="doLogout()">⏏ SIGN OUT</button>
+      </div>
+    </nav>
+    <div class="content">
+      <div id="p-dash" class="panel on">
+        <div class="ph"><h2>Command Dashboard</h2><p>Full situational overview — incidents, personnel, and live activity feed.</p></div>
+        <div class="stats">
+          <div class="stat st-r"><div class="stat-lbl">Active Incidents</div><div class="stat-val cv-r">2</div><div class="stat-note">↑ +1 last 60 min</div></div>
+          <div class="stat st-a"><div class="stat-lbl">Guests Affected</div><div class="stat-val cv-a">47</div><div class="stat-note">Across 3 floors</div></div>
+          <div class="stat st-b"><div class="stat-lbl">Responders Active</div><div class="stat-val cv-b">12</div><div class="stat-note">8 staff · 4 emergency</div></div>
+          <div class="stat st-g"><div class="stat-lbl">Resolved Today</div><div class="stat-val cv-g">5</div><div class="stat-note">Avg response 4.2 min</div></div>
+        </div>
+        <div class="act-row">
+          <button class="abtn ab-r" onclick="goPnl('report',document.querySelectorAll('.nb')[1])">🚨 New Incident</button>
+          <button class="abtn ab-a" onclick="trigBcast()">📢 Broadcast Alert</button>
+          <button class="abtn ab-b" onclick="goPnl('comms',document.querySelectorAll('.nb')[2])">💬 Open Comms</button>
+          <button class="abtn ab-g" onclick="callEm()">🆘 Emergency Services</button>
+          <button class="abtn ab-w" onclick="exportRecords()">📥 Export Excel</button>
+        </div>
+        <div class="g2">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">🚨 Live Incident Register</div><div style="font-family:var(--mono);font-size:10px;color:var(--txt3);">LIVE</div></div>
+            <div class="card-body" style="padding:0;">
+              <table class="tbl"><thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Severity</th><th>Status</th><th>Time</th></tr></thead>
+              <tbody>
+                <tr><td>INC-001</td><td>🔥 Smoke Detection</td><td>Kitchen B1</td><td><span class="sev sc">CRITICAL</span></td><td><span class="sta sa-active">ACTIVE</span></td><td style="font-family:var(--mono);font-size:11px;">08:14</td></tr>
+                <tr><td>INC-002</td><td>🚑 Medical Emergency</td><td>Room 1204</td><td><span class="sev sh">HIGH</span></td><td><span class="sta sa-active">ACTIVE</span></td><td style="font-family:var(--mono);font-size:11px;">08:31</td></tr>
+                <tr><td>INC-003</td><td>⚡ Elevator Fault</td><td>Tower A · Lift 3</td><td><span class="sev sm">MEDIUM</span></td><td><span class="sta sa-cont">CONTAINED</span></td><td style="font-family:var(--mono);font-size:11px;">07:55</td></tr>
+                <tr><td>INC-004</td><td>💡 Power Fault</td><td>Grand Ballroom</td><td><span class="sev sl">LOW</span></td><td><span class="sta sa-res">RESOLVED</span></td><td style="font-family:var(--mono);font-size:11px;">06:45</td></tr>
+                <tr><td>INC-005</td><td>👤 Guest Dispute</td><td>Main Lobby</td><td><span class="sev sl">LOW</span></td><td><span class="sta sa-res">RESOLVED</span></td><td style="font-family:var(--mono);font-size:11px;">05:30</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">⚡ Activity Feed</div></div>
+            <div class="card-body" style="padding:0 20px;">
+              <div class="feed">
+                <div class="fi"><div class="fi-ic">🔴</div><div><div class="fi-txt">Fire suppression auto-activated — Kitchen B1</div><div class="fi-meta">08:35 · AUTOMATED</div></div></div>
+                <div class="fi"><div class="fi-ic">🚑</div><div><div class="fi-txt">Paramedic Unit 3 dispatched to Room 1204</div><div class="fi-meta">08:34 · DISPATCH</div></div></div>
+                <div class="fi"><div class="fi-ic">📢</div><div><div class="fi-txt">All-staff broadcast — B1 evacuation in progress</div><div class="fi-meta">08:20 · COORDINATOR</div></div></div>
+                <div class="fi"><div class="fi-ic">✅</div><div><div class="fi-txt">INC-004 resolved — Power restored</div><div class="fi-meta">07:10 · MAINTENANCE</div></div></div>
+                <div class="fi"><div class="fi-ic">📞</div><div><div class="fi-txt">Emergency services ETA — 6 minutes</div><div class="fi-meta">08:33 · DISPATCH</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="p-report" class="panel">
+        <div class="ph"><h2>File Incident Report</h2><p>Instantly broadcast to all personnel and emergency services on submission.</p></div>
+        <div class="rep-grid">
+          <div class="fcard"><h3>New Incident Report</h3><p class="sub">Provide complete details for fastest coordinated response.</p>
+            <div class="frow"><div class="fg"><label>Incident Type</label><select><option>🔥 Fire / Smoke</option><option>🚑 Medical Emergency</option><option>🔐 Security Threat</option><option>⚡ Power / Infrastructure</option><option>🌊 Flood</option><option>🧯 Hazardous Material</option><option>👤 Missing Person</option><option>⚠️ Other</option></select></div>
+            <div class="fg"><label>Exact Location</label><input type="text" placeholder="Room, zone, or area" /></div></div>
+            <div class="frow"><div class="fg"><label>Floor / Zone</label><select><option>B2 — Parking</option><option>B1 — Kitchen</option><option>Ground — Lobby</option><option>Floor 1 — Conference</option><option>Floor 2 — Restaurant</option><option>Floors 3-6 — Lower Rooms</option><option>Floors 7-12 — Upper Rooms</option><option>Rooftop</option></select></div>
+            <div class="fg"><label>People Affected</label><input type="number" placeholder="0" min="0" /></div></div>
+            <div class="fg"><label>Severity Level</label><div class="sev-row"><button class="sopt ac" data-v="CRITICAL" onclick="pickSev(this)">🔴 Critical</button><button class="sopt" data-v="HIGH" onclick="pickSev(this)">🟠 High</button><button class="sopt" data-v="MEDIUM" onclick="pickSev(this)">🟡 Medium</button><button class="sopt" data-v="LOW" onclick="pickSev(this)">🟢 Low</button></div></div>
+            <div class="fg"><label>Description</label><textarea id="repDesc" placeholder="Describe the situation in full detail..."></textarea></div>
+            <div class="frow"><div class="fg"><label>Reported By</label><input type="text" placeholder="Name or Anonymous" /></div><div class="fg"><label>Contact</label><input type="tel" placeholder="+91 XXXXX XXXXX" /></div></div>
+            <div class="fg"><label>Action Taken</label><select><option>None yet</option><option>Called front desk</option><option>Evacuated area</option><option>First aid administered</option><option>Fire extinguisher used</option><option>Fire alarm activated</option></select></div>
+            <button class="sub-btn" onclick="subReport()">⚡ Submit Emergency Report</button>
+          </div>
+          <div>
+            <div class="sc2"><div class="sc2-hdr">👥 Available Responders</div><div class="sc2-body">
+              <div class="urow"><div class="uav ua-s">👔</div><div class="u-inf"><div class="u-nm">Raj Kumar</div><div class="u-dt">Security · Lobby</div></div><div class="u-st us-av">AVAIL</div></div>
+              <div class="urow"><div class="uav ua-m">🩺</div><div class="u-inf"><div class="u-nm">Dr. Priya Sharma</div><div class="u-dt">Medic · Bay · 120m</div></div><div class="u-st us-av">AVAIL</div></div>
+              <div class="urow"><div class="uav ua-f">🔥</div><div class="u-inf"><div class="u-nm">Fire Safety Unit</div><div class="u-dt">B1 Station</div></div><div class="u-st us-by">BUSY</div></div>
+            </div></div>
+            <div class="sc2"><div class="sc2-hdr">📞 Emergency Contacts</div><div class="sc2-body">
+              <button class="em-b" onclick="callEm()">🚒 Fire Brigade — 101</button>
+              <button class="em-b" onclick="callEm()">🚑 Ambulance — 108</button>
+              <button class="em-b" onclick="callEm()">👮 Police — 100</button>
+              <button class="em-b" onclick="callEm()">🏨 Hotel Security — Ext. 0</button>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      <div id="p-comms" class="panel">
+        <div class="ph"><h2>Communications Hub</h2><p>Full coordinator access — all channels including restricted feeds.</p></div>
+        <div class="comm-l">
+          <div class="ch-list">
+            <div class="ch-s"><input type="text" placeholder="🔍 Search channels…" /></div>
+            <div class="ch-grp">🔴 Emergency</div>
+            <div class="chi on" onclick="swCh(this,'🚨 All-Hands Emergency','32 members')"><span>🚨</span><span class="chi-nm">All-Hands Emergency</span><span class="chi-u">3</span></div>
+            <div class="chi" onclick="swCh(this,'🔥 INC-001 Fire Team','8 members')"><span>🔥</span><span class="chi-nm">INC-001 Fire Team</span><span class="chi-u">7</span></div>
+            <div class="chi" onclick="swCh(this,'🚑 INC-002 Medical','5 members')"><span>🚑</span><span class="chi-nm">INC-002 Medical</span></div>
+            <div class="ch-grp">🔒 Coordinator Only</div>
+            <div class="chi" onclick="swCh(this,'🔒 Coordinator Command','Secure · Restricted')"><span>🔒</span><span class="chi-nm">Coordinator Command</span></div>
+            <div class="chi" onclick="swCh(this,'📋 Audit Log','System only')"><span>📋</span><span class="chi-nm">Audit Log</span></div>
+            <div class="ch-grp">👔 Staff</div>
+            <div class="chi" onclick="swCh(this,'🛡 Security Team','6 members')"><span>🛡</span><span class="chi-nm">Security Team</span></div>
+            <div class="chi" onclick="swCh(this,'🏨 Front Desk','4 members')"><span>🏨</span><span class="chi-nm">Front Desk</span></div>
+            <div class="ch-grp">📢 Broadcast</div>
+            <div class="chi" onclick="swCh(this,'📢 All Guests','247 devices')"><span>📢</span><span class="chi-nm">All Guests</span></div>
+          </div>
+          <div class="chat-p">
+            <div class="chat-hdr"><div class="chat-pulse"></div><div class="chat-nm" id="cChNm">🚨 All-Hands Emergency</div><div class="chat-mt" id="cChMt">32 members · LIVE</div><button class="btn-bcast" onclick="trigBcast()">📢 Broadcast</button></div>
+            <div class="chat-msgs" id="cMsgs">
+              <div class="msg"><div class="m-av">🤖</div><div class="m-bd"><div class="m-meta"><div class="m-nm nm-sys">SYSTEM</div><div class="m-ts">08:14</div></div><div class="m-alrt">🔴 CRITICAL: Smoke detection — Kitchen B1. Evacuation Protocol ALPHA activated.</div></div></div>
+              <div class="msg"><div class="m-av">🎖️</div><div class="m-bd"><div class="m-meta"><div class="m-nm">Cdr. Verma</div><div class="m-ts">08:15</div></div><div class="m-txt">All security to B1. No lifts. Kitchen staff via Service Exit 3.</div></div></div>
+              <div class="msg"><div class="m-av">👔</div><div class="m-bd"><div class="m-meta"><div class="m-nm nm-st">Raj — Security</div><div class="m-ts">08:16</div></div><div class="m-txt">En route, ETA 2 min. Rerouting lobby guests away from elevators.</div></div></div>
+            </div>
+            <div class="chat-inp-a"><input class="chat-inp" id="cInp" placeholder="Type message… Enter to send" onkeydown="if(event.key==='Enter')sendMsg('c')" /><button class="send-b" onclick="sendMsg('c')">Send</button></div>
+          </div>
+        </div>
+      </div>
+      <div id="p-status" class="panel">
+        <div class="ph"><h2>Live Status Board</h2><p>Property map and incident tracking across all zones.</p></div>
+        <div class="zone-c">
+          <div class="zone-ttl"><span>🗺️ Property Floor Map — Grand Hyatt, New Delhi</span><span style="font-family:var(--mono);font-size:10px;color:var(--txt3);">LIVE</span></div>
+          <div class="fl-lbl">FLOOR 12 (EAST WING)</div>
+          <div class="fl-grid"><div class="room r-ok">1201</div><div class="room r-al">1202</div><div class="room r-ok">1203</div><div class="room r-al">1204</div><div class="room r-ev">1205</div><div class="room r-ev">1206</div><div class="room r-ok">1207</div><div class="room r-ok">1208</div></div>
+          <div class="fl-lbl">FLOOR B1 — KITCHEN</div>
+          <div class="fl-grid"><div class="room r-al">K-01</div><div class="room r-al">K-02</div><div class="room r-al">K-03</div><div class="room r-wn">S-01</div><div class="room r-wn">S-02</div><div class="room r-ev">EXIT</div><div class="room r-ok">UTIL</div><div class="room r-ok">COLD</div></div>
+          <div class="fl-lbl">GROUND FLOOR</div>
+          <div class="fl-grid"><div class="room r-ok">LBBY</div><div class="room r-ok">RCPT</div><div class="room r-ok">REST</div><div class="room r-ok">BAR</div><div class="room r-ok">CONF</div><div class="room r-ok">SPA</div><div class="room r-ok">POOL</div><div class="room r-ok">GIFT</div></div>
+          <div class="map-leg"><div class="li"><div class="ls" style="background:rgba(224,53,53,.3);border-color:var(--red);"></div>ALERT</div><div class="li"><div class="ls" style="background:rgba(245,158,11,.2);border-color:var(--amber);"></div>WARNING</div><div class="li"><div class="ls" style="background:rgba(59,130,246,.2);border-color:var(--blue);"></div>EVACUATION</div><div class="li"><div class="ls" style="background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);"></div>CLEAR</div></div>
+        </div>
+        <div class="kanban">
+          <div class="kb"><div class="kb-hdr kh-r"><span>🔴 Active</span><span class="kb-cnt">2</span></div><div class="kb-it"><div class="kb-t">🔥 Smoke — Kitchen B1</div><div class="kb-m">INC-001 · CRITICAL · 08:14</div></div><div class="kb-it"><div class="kb-t">🚑 Medical — Room 1204</div><div class="kb-m">INC-002 · HIGH · 08:31</div></div></div>
+          <div class="kb"><div class="kb-hdr kh-a"><span>🟡 Contained</span><span class="kb-cnt">1</span></div><div class="kb-it"><div class="kb-t">⚡ Elevator — Tower A</div><div class="kb-m">INC-003 · MEDIUM · 07:55</div></div></div>
+          <div class="kb"><div class="kb-hdr kh-g"><span>✅ Resolved</span><span class="kb-cnt">5</span></div><div class="kb-it"><div class="kb-t">💡 Power — Ballroom</div><div class="kb-m">INC-004 · Resolved 07:10</div></div><div class="kb-it"><div class="kb-t">👤 Dispute — Lobby</div><div class="kb-m">INC-005 · Resolved 05:30</div></div><div class="kb-it"><div class="kb-t">🌊 Water Leak — Spa</div><div class="kb-m">INC-006 · Resolved 23:55</div></div></div>
+        </div>
+      </div>
+      <div id="p-records" class="panel">
+        <div class="ph"><h2>Incident Records</h2><p>Full historical log — restricted to Coordinator access only. Export for official reporting.</p></div>
+        <div class="rec-tb"><input class="rec-s" type="text" placeholder="🔍 Search records…" oninput="filterRec(this.value)" /><button class="btn-xl" onclick="exportRecords()">📥 Export Excel</button><button class="abtn ab-r" onclick="goPnl('report',document.querySelectorAll('.nb')[1])">+ New Report</button></div>
+        <div class="rec-wrap">
+          <table class="tbl" id="recTbl"><thead><tr><th>ID</th><th>Date</th><th>Type</th><th>Location</th><th>Severity</th><th>People</th><th>Status</th><th>Resolved</th></tr></thead>
+          <tbody id="recBody">
+            <tr><td>INC-001</td><td>19 Apr 2026</td><td>🔥 Smoke Detection</td><td>Kitchen B1</td><td><span class="sev sc">CRITICAL</span></td><td>14</td><td><span class="sta sa-res">RESOLVED</span></td><td style="font-family:var(--mono);font-size:11px;">08:52</td></tr>
+            <tr><td>INC-002</td><td>19 Apr 2026</td><td>🚑 Medical Emergency</td><td>Room 1204</td><td><span class="sev sh">HIGH</span></td><td>1</td><td><span class="sta sa-active">ACTIVE</span></td><td style="font-family:var(--mono);font-size:11px;">—</td></tr>
+            <tr><td>INC-003</td><td>19 Apr 2026</td><td>⚡ Elevator Fault</td><td>Tower A</td><td><span class="sev sm">MEDIUM</span></td><td>3</td><td><span class="sta sa-cont">CONTAINED</span></td><td style="font-family:var(--mono);font-size:11px;">—</td></tr>
+            <tr><td>INC-004</td><td>19 Apr 2026</td><td>💡 Power Fault</td><td>Ballroom</td><td><span class="sev sl">LOW</span></td><td>0</td><td><span class="sta sa-res">RESOLVED</span></td><td style="font-family:var(--mono);font-size:11px;">07:10</td></tr>
+            <tr><td>INC-005</td><td>19 Apr 2026</td><td>👤 Guest Dispute</td><td>Lobby</td><td><span class="sev sl">LOW</span></td><td>2</td><td><span class="sta sa-res">RESOLVED</span></td><td style="font-family:var(--mono);font-size:11px;">05:45</td></tr>
+            <tr><td>INC-006</td><td>18 Apr 2026</td><td>🌊 Water Leak</td><td>Spa Room 3</td><td><span class="sev sl">LOW</span></td><td>0</td><td><span class="sta sa-res">RESOLVED</span></td><td style="font-family:var(--mono);font-size:11px;">23:55</td></tr>
+          </tbody></table>
+          <div class="rec-pg"><span>6 records · Coordinator access only</span><div class="pg-btns"><button class="pbn cur">1</button><button class="pbn">2</button></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GUEST / STAFF / RESPONDER VIEW -->
+<div id="vUser" class="view">
+  <div class="gu-shell">
+    <div class="gu-top">
+      <div class="tb-brand">RAPID<span>CR</span></div>
+      <div class="live-tag" style="font-size:10px;"><div class="d"></div>LIVE</div>
+      <div class="gu-top-right">
+        <div class="gu-role-badge" id="guRoleBadge">GUEST</div>
+        <div class="user-chip"><div class="u-av" id="guAv" style="background:var(--blue);">G</div><div><div class="u-name" id="guName">Guest</div><div class="u-role" id="guRoleLabel" style="color:var(--blue);">GUEST</div></div></div>
+        <button class="btn-out" onclick="doLogout()">⏏ OUT</button>
+      </div>
+    </div>
+    <div class="gu-nav">
+      <button class="gu-nb on" onclick="guPnl('sos',this)">🆘 Emergency SOS</button>
+      <button class="gu-nb" onclick="guPnl('report',this)">📝 Report Issue</button>
+      <button class="gu-nb" onclick="guPnl('info',this)">ℹ️ Safety Info</button>
+      <button class="gu-nb" id="guStaffTab" style="display:none;" onclick="guPnl('staff',this)">📋 Incidents</button>
+      <button class="gu-nb" id="guCommsTab" style="display:none;" onclick="guPnl('comms',this)">💬 Team Comms</button>
+      <button class="gu-nb" id="guRespTab" style="display:none;" onclick="guPnl('resp',this)">🗺 My Assignments</button>
+    </div>
+    <div class="gu-content">
+      <!-- SOS PANEL -->
+      <div id="gp-sos" class="gu-panel on">
+        <div class="gu-status-bar">
+          <div class="gsb-item"><div class="gsb-icon">📍</div><div class="gsb-txt">Location<br><span class="gsb-val">Grand Hyatt, New Delhi</span></div></div>
+          <div class="gsb-item"><div class="gsb-icon">🔴</div><div class="gsb-txt">Active Incidents<br><span class="gsb-val" style="color:var(--red);">2 Ongoing</span></div></div>
+          <div class="gsb-item"><div class="gsb-icon">🟢</div><div class="gsb-txt">Security Status<br><span class="gsb-val" style="color:var(--green);">Staff Deployed</span></div></div>
+        </div>
+        <div class="sos-section">
+          <div class="sos-title">🚨 EMERGENCY SOS</div>
+          <p class="sos-sub">Press and hold the button to immediately alert all on-site security, staff, and emergency services to your location.</p>
+          <button class="sos-btn" onmousedown="startHold(this)" onmouseup="endHold(this)" ontouchstart="startHold(this)" ontouchend="endHold(this)">
+            <div class="sos-icon">🆘</div>
+            <div class="sos-label">PRESS &amp; HOLD</div>
+          </button>
+          <p style="font-size:12px;color:var(--txt3);">Hold for 2 seconds to activate · Alerts all 14 on-duty personnel instantly</p>
+        </div>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt2);margin-bottom:12px;">📞 Immediate Emergency Services</div>
+          <div class="em-contacts">
+            <button class="ec-btn ec-fire" onclick="callService('Fire Brigade','101')"><div class="ec-icon">🚒</div><div class="ec-name">Fire Brigade</div><div class="ec-num">101</div></button>
+            <button class="ec-btn ec-amb" onclick="callService('Ambulance','108')"><div class="ec-icon">🚑</div><div class="ec-name">Ambulance</div><div class="ec-num">108</div></button>
+            <button class="ec-btn ec-pol" onclick="callService('Police','100')"><div class="ec-icon">👮</div><div class="ec-name">Police</div><div class="ec-num">100</div></button>
+            <button class="ec-btn ec-hot" onclick="callService('Hotel Security','Ext. 0')"><div class="ec-icon">🏨</div><div class="ec-name">Hotel Security</div><div class="ec-num">Ext. 0</div></button>
+          </div>
+        </div>
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt2);margin-bottom:12px;">⚡ Request Immediate Assistance</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button class="abtn ab-r" style="justify-content:center;" onclick="reqHelp('Medical assistance')">🩺 Medical Help</button>
+            <button class="abtn ab-a" style="justify-content:center;" onclick="reqHelp('Fire / smoke reported')">🔥 Fire / Smoke</button>
+            <button class="abtn ab-b" style="justify-content:center;" onclick="reqHelp('Security assistance')">🛡 Security Help</button>
+            <button class="abtn ab-g" style="justify-content:center;" onclick="reqHelp('Evacuation assistance')">🚪 Need Evacuation</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">📣 Current Property Advisory</div></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="background:rgba(224,53,53,.08);border:1px solid rgba(224,53,53,.2);border-left:3px solid var(--red);padding:12px 14px;border-radius:4px;font-size:13px;line-height:1.6;"><strong style="color:var(--red);">⚠️ Kitchen Level B1:</strong> Emergency response in progress. Avoid Floor B1. Use stairwells only — elevators restricted.</div>
+              <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);border-left:3px solid var(--amber);padding:12px 14px;border-radius:4px;font-size:13px;line-height:1.6;"><strong style="color:var(--amber);">⚡ Elevator 3, Tower A:</strong> Out of service. Use Elevators 1, 2, or 4.</div>
+              <div style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.15);border-left:3px solid var(--green);padding:12px 14px;border-radius:4px;font-size:13px;line-height:1.6;"><strong style="color:var(--green);">✅ All other areas:</strong> Normal operations. Hotel staff on duty across all floors.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- REPORT PANEL (USERS) -->
+      <div id="gp-report" class="gu-panel">
+        <div class="ph"><h2>Report an Issue</h2><p>Your report is sent directly to hotel staff and security.</p></div>
+        <div class="fcard">
+          <div class="frow"><div class="fg"><label>Type of Issue</label><select><option>🔥 Fire / Smoke</option><option>🚑 Medical Emergency</option><option>🔐 Security Concern</option><option>⚡ Power / Facilities</option><option>🌊 Water / Flood</option><option>😤 Noise / Disturbance</option><option>❓ Other</option></select></div>
+          <div class="fg"><label>Your Room / Location</label><input type="text" placeholder="Room 1204, Lobby, Pool…" /></div></div>
+          <div class="fg"><label>What is happening?</label><textarea placeholder="Describe what you see, hear, or feel in as much detail as possible — this helps us respond faster." style="min-height:110px;"></textarea></div>
+          <div class="frow"><div class="fg"><label>Your Name</label><input type="text" placeholder="Optional — anonymous allowed" /></div><div class="fg"><label>Contact Number</label><input type="tel" placeholder="Your mobile number" /></div></div>
+          <div class="fg"><label>Are you in immediate danger?</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+              <button class="sopt" style="padding:12px;" onclick="this.classList.add('ac');this.nextElementSibling.classList.remove('ac')">🔴 YES — Emergency</button>
+              <button class="sopt ac" style="padding:12px;" onclick="this.classList.add('ac');this.previousElementSibling.classList.remove('ac')">🟢 NO — Non-urgent</button>
+            </div>
+          </div>
+          <button class="sub-btn" onclick="subReport()">📤 Submit Report</button>
+        </div>
+      </div>
+      <!-- SAFETY INFO -->
+      <div id="gp-info" class="gu-panel">
+        <div class="ph"><h2>Safety Information</h2><p>Important guidance for your safety on the property.</p></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div class="card"><div class="card-hdr"><div class="card-title">🚪 Evacuation Routes</div></div><div class="card-body" style="font-size:13px;color:var(--txt2);line-height:1.9;"><strong style="color:var(--txt);">Assembly Point A</strong> — Main car park, Gate 1<br><strong style="color:var(--txt);">Assembly Point B</strong> — Garden terrace, west wing<br><strong style="color:var(--txt);">Stairwells</strong> — Use only stairwells during emergencies. Never use lifts.<br><strong style="color:var(--txt);">Fire Exits</strong> — Marked in green on each floor corridor.</div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">🧯 Fire Safety</div></div><div class="card-body" style="font-size:13px;color:var(--txt2);line-height:1.9;">✅ Stay low if there is smoke<br>✅ Feel doors before opening — if hot, do not open<br>✅ Pull fire alarm nearest to you<br>✅ Do not collect belongings — leave immediately<br>✅ Once outside, do not re-enter for any reason</div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">🩺 Medical Emergency</div></div><div class="card-body" style="font-size:13px;color:var(--txt2);line-height:1.9;">✅ Call hotel security — Ext. 0<br>✅ Press the SOS button on this app<br>✅ Hotel medic on duty 24/7<br>✅ AED units at: Lobby, Floor 6, Floor 12<br>✅ Do not move injured persons unless in immediate danger</div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">📍 Key Locations</div></div><div class="card-body" style="font-size:13px;color:var(--txt2);line-height:1.9;">🏨 <strong style="color:var(--txt);">Reception</strong> — Ground Floor, 24/7<br>🩺 <strong style="color:var(--txt);">Medical Room</strong> — Ground Floor, near rear exit<br>🚒 <strong style="color:var(--txt);">Fire Safety Station</strong> — Floor B1, east corridor<br>🛡 <strong style="color:var(--txt);">Security Office</strong> — Ground Floor, behind concierge</div></div>
+        </div>
+      </div>
+      <!-- STAFF INCIDENTS -->
+      <div id="gp-staff" class="gu-panel">
+        <div class="ph"><h2>Incident Overview</h2><p>Current active incidents — staff view only.</p></div>
+        <div class="card" style="margin-bottom:16px;"><div class="card-hdr"><div class="card-title">🚨 Active Incidents</div></div>
+          <div class="card-body" style="padding:0;"><table class="tbl"><thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Severity</th><th>Status</th></tr></thead><tbody>
+            <tr><td>INC-001</td><td>🔥 Smoke</td><td>Kitchen B1</td><td><span class="sev sc">CRITICAL</span></td><td><span class="sta sa-active">ACTIVE</span></td></tr>
+            <tr><td>INC-002</td><td>🚑 Medical</td><td>Room 1204</td><td><span class="sev sh">HIGH</span></td><td><span class="sta sa-active">ACTIVE</span></td></tr>
+            <tr><td>INC-003</td><td>⚡ Elevator</td><td>Tower A</td><td><span class="sev sm">MEDIUM</span></td><td><span class="sta sa-cont">CONTAINED</span></td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="act-row"><button class="abtn ab-r" onclick="guPnl('report',document.querySelectorAll('.gu-nb')[1])">🚨 Report New Incident</button><button class="abtn ab-a" onclick="trigBcast()">📢 Broadcast to Guests</button></div>
+      </div>
+      <!-- STAFF COMMS -->
+      <div id="gp-comms" class="gu-panel">
+        <div class="ph"><h2>Team Communications</h2><p>Staff channels — emergency broadcasts and coordination.</p></div>
+        <div class="card" style="height:480px;display:flex;flex-direction:column;">
+          <div class="chat-hdr"><div class="chat-pulse"></div><div class="chat-nm">🚨 All-Hands Emergency</div><div class="chat-mt" style="margin-left:auto;">LIVE</div></div>
+          <div class="chat-msgs" id="gMsgs" style="flex:1;">
+            <div class="msg"><div class="m-av">🤖</div><div class="m-bd"><div class="m-meta"><div class="m-nm nm-sys">SYSTEM</div><div class="m-ts">08:14</div></div><div class="m-alrt">🔴 Smoke detection — Kitchen B1. Evacuation Protocol ALPHA activated.</div></div></div>
+            <div class="msg"><div class="m-av">🎖️</div><div class="m-bd"><div class="m-meta"><div class="m-nm">Cdr. Verma</div><div class="m-ts">08:15</div></div><div class="m-txt">All security to B1. No lifts. Service Exit 3 for kitchen staff.</div></div></div>
+          </div>
+          <div class="chat-inp-a"><input class="chat-inp" id="gInp" placeholder="Type message… Enter to send" onkeydown="if(event.key==='Enter')sendMsg('g')" /><button class="send-b" onclick="sendMsg('g')">Send</button></div>
+        </div>
+      </div>
+      <!-- RESPONDER BOARD -->
+      <div id="gp-resp" class="gu-panel">
+        <div class="ph"><h2>My Assignments</h2><p>Active deployments and your current incident response status.</p></div>
+        <div class="resp-board">
+          <div class="rb-card"><h4>🔴 Active Assignments</h4><div class="rb-inc"><div class="rb-t">🔥 INC-001 — Kitchen B1</div><div class="rb-m">CRITICAL · Report to Fire Safety Station</div></div><div class="rb-inc"><div class="rb-t">🚑 INC-002 — Room 1204</div><div class="rb-m">HIGH · Paramedic support needed</div></div></div>
+          <div class="rb-card"><h4>📍 Deployment Zones</h4><div class="rb-inc"><div class="rb-t">Floor B1 — Kitchen</div><div class="rb-m">6 units · Fire response</div></div><div class="rb-inc"><div class="rb-t">Floor 12 — East Wing</div><div class="rb-m">2 units · Medical response</div></div></div>
+        </div>
+        <div class="act-row"><button class="abtn ab-g" onclick="toast('✅ Marked ON SCENE — status updated','ok')">✅ Mark On Scene</button><button class="abtn ab-a" onclick="toast('🏁 Marked CLEARED — status updated','ok')">🏁 Mark Cleared</button><button class="abtn ab-r" onclick="guPnl('report',document.querySelectorAll('.gu-nb')[1])">🚨 File Report</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modWrap">
+  <div class="modal"><div class="m-icon" id="mIcon">⚠️</div><div class="m-ttl" id="mTtl">Confirm</div><div class="m-body" id="mBody">Are you sure?</div><div class="m-acts"><button class="m-cn" onclick="closeModal()">Cancel</button><button class="m-ok" id="mOk">Confirm</button></div></div>
+</div>
+<div class="toast-tray" id="toastTray"></div>
+
+<script>
+const COORD_EMAIL='crisiscoordinator@gmail.com';
+const COORD_PASS='285364';
+let currentRole='guest';
+let holdTimer=null,holdStarted=false;
+
+function selRole(el,role){
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');currentRole=role;
+  document.getElementById('coordNotice').classList.toggle('show',role==='coordinator');
+  document.getElementById('inpEmail').placeholder=role==='coordinator'?'crisiscoordinator@gmail.com':'you@example.com';
+  document.getElementById('inpPass').placeholder=role==='coordinator'?'6-digit access code':'Your password';
+  document.getElementById('errBox').classList.remove('on');
+}
+function tglPwd(){const i=document.getElementById('inpPass'),b=document.getElementById('tglBtn');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'SHOW':'HIDE';}
+function doLogin(){
+  const name=document.getElementById('inpName').value.trim();
+  const email=document.getElementById('inpEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('inpPass').value.trim();
+  const btn=document.getElementById('loginBtn');
+  const err=document.getElementById('errBox');
+  if(!name){toast('⚠️ Please enter your name or staff ID','er');return;}
+  if(!pass){toast('⚠️ Please enter your password','er');return;}
+  err.classList.remove('on');
+  btn.textContent='Verifying…';btn.disabled=true;
+  setTimeout(()=>{
+    btn.disabled=false;btn.textContent='Sign In →';
+    if(currentRole==='coordinator'){
+      if(email===COORD_EMAIL&&pass===COORD_PASS){launchCoord(name);}
+      else{err.classList.add('on');document.getElementById('inpPass').value='';}
+      return;
+    }
+    if(!email||email.indexOf('@')===-1){toast('⚠️ Please enter a valid email address','er');return;}
+    launchUser(name,currentRole);
+  },850);
+}
+function launchCoord(name){
+  document.getElementById('cName').textContent=name;
+  document.getElementById('vLogin').classList.remove('on');
+  document.getElementById('vCoord').classList.add('on');
+  startClock('clkC');
+  toast('✅ Welcome, Coordinator. Full system access granted.','ok');
+  setTimeout(()=>toast('🔴 2 critical incidents require immediate attention.','er'),1800);
+}
+function launchUser(name,role){
+  const cfg={
+    guest:{badge:'GUEST',color:'#3B82F6',label:'GUEST',av:'G',tabs:[]},
+    staff:{badge:'STAFF',color:'#10B981',label:'STAFF MEMBER',av:'S',tabs:['guStaffTab','guCommsTab']},
+    responder:{badge:'RESPONDER',color:'#8B5CF6',label:'FIRST RESPONDER',av:'R',tabs:['guStaffTab','guCommsTab','guRespTab']}
+  };
+  const c=cfg[role]||cfg.guest;
+  document.getElementById('guName').textContent=name;
+  document.getElementById('guAv').textContent=c.av;
+  document.getElementById('guAv').style.background=c.color;
+  document.getElementById('guRoleBadge').textContent=c.badge;
+  document.getElementById('guRoleBadge').className='gu-role-badge grb-'+role;
+  document.getElementById('guRoleLabel').textContent=c.label;
+  document.getElementById('guRoleLabel').style.color=c.color;
+  ['guStaffTab','guCommsTab','guRespTab'].forEach(id=>{
+    document.getElementById(id).style.display=c.tabs.includes(id)?'':'none';
+  });
+  document.getElementById('vLogin').classList.remove('on');
+  document.getElementById('vUser').classList.add('on');
+  const msgs={guest:'🧳 Welcome! Use the SOS button in any emergency.',staff:'👔 Staff access granted. Incident board and comms available.',responder:'🚒 Responder access granted. Check your assignments.'};
+  toast(msgs[role]||'✅ Signed in successfully','ok');
+}
+function doLogout(){
+  openModal('⏏️','Sign Out','Are you sure you want to sign out? Ensure coverage is maintained for active incidents.',()=>{
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    document.getElementById('vLogin').classList.add('on');
+    ['inpName','inpEmail','inpPass'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('errBox').classList.remove('on');
+    document.getElementById('loginBtn').textContent='Sign In →';
+    document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('sel'));
+    document.querySelector('[data-role="guest"]').classList.add('sel');
+    currentRole='guest';
+    document.getElementById('coordNotice').classList.remove('show');
+  });
+}
+function goPnl(id,btn){
+  document.querySelectorAll('#vCoord .panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(t=>t.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  if(btn)btn.classList.add('on');
+}
+function guPnl(id,btn){
+  document.querySelectorAll('.gu-panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.gu-nb').forEach(t=>t.classList.remove('on'));
+  document.getElementById('gp-'+id).classList.add('on');
+  if(btn)btn.classList.add('on');
+}
+function startHold(btn){
+  holdStarted=false;btn.style.transform='scale(0.95)';
+  holdTimer=setTimeout(()=>{holdStarted=true;trigSOS();},2000);
+}
+function endHold(btn){
+  btn.style.transform='';
+  if(!holdStarted){clearTimeout(holdTimer);toast('⚠️ Hold for 2 seconds to activate SOS','if');}
+}
+function trigSOS(){
+  openModal('🆘','SOS ACTIVATED','Your emergency alert is being broadcast to ALL on-duty personnel and emergency services. Help is on its way. Stay where you are if safe.',()=>{
+    toast('🚨 SOS sent — Security and medic dispatched to your location','er');
+    setTimeout(()=>toast('📞 Hotel security notified','ok'),1400);
+    setTimeout(()=>toast('🚑 Paramedic alerted — ETA 3 minutes','ok'),2800);
+  });
+}
+function callService(name,num){
+  openModal('📞','Call '+name,'You are about to alert '+name+' ('+num+'). Hotel staff will also be notified simultaneously.',()=>{
+    toast('📞 '+name+' ('+num+') alerted — staff notified','ok');
+  });
+}
+function reqHelp(type){
+  openModal('🆘','Request Sent','"'+type+'" alert is being sent to the nearest available hotel staff member.',()=>{
+    toast('✅ "'+type+'" — Staff dispatched to your location','ok');
+  });
+}
+function pickSev(btn){document.querySelectorAll('.sopt').forEach(b=>b.classList.remove('ac'));btn.classList.add('ac');}
+function subReport(){
+  openModal('🚨','Submit Report','This report will be broadcast to all on-site staff and emergency coordinators immediately. Confirm?',()=>{
+    toast('✅ Report filed — INC-007 created. All staff notified.','ok');
+    setTimeout(()=>toast('🚒 Responders being dispatched','ok'),1500);
+  });
+}
+function trigBcast(){openModal('📢','Send Broadcast','Push an emergency notification to all connected devices on the property?',()=>{toast('📢 Broadcast sent to 247 devices','ok');});}
+function callEm(){toast('📞 Connecting to emergency services…','if');setTimeout(()=>toast('✅ Emergency services alerted — ETA confirmed','ok'),1800);}
+function swCh(el,name,meta){
+  document.querySelectorAll('#vCoord .chi').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('cChNm').textContent=name;
+  document.getElementById('cChMt').textContent=(meta||'')+' · LIVE';
+}
+function sendMsg(ctx){
+  const inp=document.getElementById(ctx==='c'?'cInp':'gInp');
+  const msgs=document.getElementById(ctx==='c'?'cMsgs':'gMsgs');
+  const txt=inp.value.trim();if(!txt)return;
+  const el=document.createElement('div');el.className='msg';
+  const role=ctx==='c'?document.getElementById('cName').textContent:document.getElementById('guName').textContent;
+  const ts=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML='<div class="m-av" style="background:rgba(224,53,53,.15);">'+(ctx==='c'?'C':'S')+'</div><div class="m-bd"><div class="m-meta"><div class="m-nm" style="color:var(--red);">'+role+'</div><div class="m-ts">'+ts+'</div></div><div class="m-txt">'+txt.replace(/</g,'&lt;')+'</div></div>';
+  msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;inp.value='';
+}
+function filterRec(q){document.querySelectorAll('#recBody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});}
+function exportRecords(){
+  const rows=[['Incident ID','Date','Type','Location','Severity','People Affected','Status','Resolved At'],['INC-001','19 Apr 2026','Fire / Smoke','Kitchen B1','CRITICAL',14,'RESOLVED','08:52 AM'],['INC-002','19 Apr 2026','Medical Emergency','Room 1204','HIGH',1,'ACTIVE','—'],['INC-003','19 Apr 2026','Elevator Fault','Tower A, Lift 3','MEDIUM',3,'CONTAINED','—'],['INC-004','19 Apr 2026','Power Fluctuation','Grand Ballroom','LOW',0,'RESOLVED','07:10 AM'],['INC-005','19 Apr 2026','Guest Dispute','Main Lobby','LOW',2,'RESOLVED','05:45 AM'],['INC-006','18 Apr 2026','Water Leak','Spa Room 3','LOW',0,'RESOLVED','23:55']];
+  const resp=[['Responder','Role','Contact','Incident','Zone','Deployed','Cleared','Status'],['Raj Kumar','Security Chief','+91-9811001100','INC-001','Floor B1','08:16 AM','09:00 AM','CLEARED'],['Dr. Priya Sharma','On-site Medic','+91-9811002200','INC-002','Room 1204','08:35 AM','—','ON DUTY'],['Fire Station 7','External','101','INC-001','Floor B1','08:20 AM','09:10 AM','CLEARED'],['Suresh Menon','Maintenance','+91-9811003300','INC-001/003','B1+Tower A','08:15 AM','09:30 AM','CLEARED'],['Paramedic Unit 3','Ambulance','108','INC-002','Room 1204','08:40 AM','—','ON DUTY']];
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.aoa_to_sheet(rows);
+  const ws2=XLSX.utils.aoa_to_sheet(resp);
+  ws1['!cols']=[13,13,20,20,12,16,14,14].map(w=>({wch:w}));
+  ws2['!cols']=[22,16,16,14,14,12,12,12].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws1,'Incident Records');
+  XLSX.utils.book_append_sheet(wb,ws2,'Responder Log');
+  const d=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  XLSX.writeFile(wb,'RapidCR_Records_'+d+'.xlsx');
+  toast('📥 Excel exported — RapidCR_Records_'+d+'.xlsx','ok');
+}
+let _cb=null;
+function openModal(icon,title,body,cb){
+  document.getElementById('mIcon').textContent=icon;
+  document.getElementById('mTtl').textContent=title;
+  document.getElementById('mBody').textContent=body;
+  document.getElementById('modWrap').classList.add('on');
+  _cb=cb;
+  document.getElementById('mOk').onclick=()=>{closeModal();_cb&&_cb();};
+}
+function closeModal(){document.getElementById('modWrap').classList.remove('on');}
+document.getElementById('modWrap').addEventListener('click',e=>{if(e.target.id==='modWrap')closeModal();});
+function toast(msg,type='if'){
+  const tray=document.getElementById('toastTray');
+  const el=document.createElement('div');
+  el.className='toast t-'+type;el.textContent=msg;
+  tray.appendChild(el);setTimeout(()=>el.remove(),4500);
+}
+function startClock(id){
+  const tick=()=>{const el=document.getElementById(id);if(el)el.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});};
+  tick();setInterval(tick,1000);
+}
+</script>
+</body>
+</html>
